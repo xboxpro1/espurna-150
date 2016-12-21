@@ -73,9 +73,10 @@
 // -----------------------------------------------------------------------------
 
 #define NTP_SERVER              "pool.ntp.org"
-#define NTP_TIME_OFFSET         1
-#define NTP_DAY_LIGHT           true
-#define NTP_UPDATE_INTERVAL     1800
+#define NTP_TIME_ZONE           1
+#define NTP_DAY_LIGHT           1
+#define NTP_SHORT_INTERVAL      5
+#define NTP_LONG_INTERVAL       1800
 
 // -----------------------------------------------------------------------------
 // FAUXO

@@ -15,9 +15,15 @@ Copyright (C) 2016 by Xose Pérez <xose dot perez at gmail dot com>
 // NTP
 // -----------------------------------------------------------------------------
 
-void ntpConnect(WiFiEventStationModeGotIP ipInfo) {
-    NTP.begin(NTP_SERVER, NTP_TIME_OFFSET, NTP_DAY_LIGHT);
-    NTP.setInterval(NTP_UPDATE_INTERVAL);
+void ntpConfigure() {
+    NTP.stop();
+    NTP.setNtpServerName(getSetting("timeServer2", ""), 1);
+    NTP.setNtpServerName(getSetting("timeServer3", ""), 2);
+    NTP.begin(
+        getSetting("timeServer1", NTP_SERVER),
+        getSetting("timeZone", String(NTP_TIME_ZONE)).toInt(),
+        getSetting("timeSaving", String(NTP_DAY_LIGHT)).toInt() == 1
+    );
 }
 
 void ntpSetup() {
@@ -31,11 +37,17 @@ void ntpSetup() {
             }
         } else {
             DEBUG_MSG("[NTP] Time: %s\n", (char *) NTP.getTimeDateString(NTP.getLastNTPSync()).c_str());
+            char buffer[30];
+            sprintf(buffer, "{\"time\": \"%s\"}", NTP.getTimeDateString(NTP.getLastNTPSync()).c_str());
+            wsSend(buffer);
         }
     });
 
     static WiFiEventHandler e;
-    e = WiFi.onStationModeGotIP(ntpConnect);
+    e = WiFi.onStationModeGotIP([](WiFiEventStationModeGotIP ipInfo) {
+        NTP.setInterval(NTP_SHORT_INTERVAL, NTP_LONG_INTERVAL);
+        ntpConfigure();
+    });
 
 }
 

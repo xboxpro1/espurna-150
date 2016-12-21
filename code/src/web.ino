@@ -90,6 +90,7 @@ void _wsParse(uint32_t client_id, uint8_t * payload, size_t length) {
         bool dirty = false;
         bool dirtyMQTT = false;
         bool apiEnabled = false;
+        bool timeSaving = false;
         #if ENABLE_FAUXMO
             bool fauxmoEnabled = false;
         #endif
@@ -101,14 +102,14 @@ void _wsParse(uint32_t client_id, uint8_t * payload, size_t length) {
             String key = config[i]["name"];
             String value = config[i]["value"];
 
-            #if ENABLE_POW
+            if (key == "time") continue;
 
-                if (key == "powExpectedPower") {
+            if (key == "powExpectedPower") {
+                #if ENABLE_POW
                     powSetExpectedActivePower(value.toInt());
-                    continue;
-                }
-
-            #endif
+                #endif
+                continue;
+            }
 
             // Check password
             if (key == "adminPass1") {
@@ -128,6 +129,10 @@ void _wsParse(uint32_t client_id, uint8_t * payload, size_t length) {
             // Checkboxes
             if (key == "apiEnabled") {
                 apiEnabled = true;
+                continue;
+            }
+            if (key == "timeSaving") {
+                timeSaving = true;
                 continue;
             }
             #if ENABLE_FAUXMO
@@ -158,6 +163,10 @@ void _wsParse(uint32_t client_id, uint8_t * payload, size_t length) {
             setSetting("apiEnabled", apiEnabled);
             dirty = true;
         }
+        if (timeSaving != (getSetting("timeSaving").toInt() == 1)) {
+            setSetting("timeSaving", timeSaving);
+            dirty = true;
+        }
         #if ENABLE_FAUXMO
             if (fauxmoEnabled != (getSetting("fauxmoEnabled").toInt() == 1)) {
                 setSetting("fauxmoEnabled", fauxmoEnabled);
@@ -175,6 +184,7 @@ void _wsParse(uint32_t client_id, uint8_t * payload, size_t length) {
                 fauxmoConfigure();
             #endif
             buildTopics();
+            ntpConfigure();
 
             #if ENABLE_RF
                 rfBuildCodes();
@@ -241,6 +251,13 @@ void _wsStart(uint32_t client_id) {
 
     root["apiEnabled"] = getSetting("apiEnabled").toInt() == 1;
     root["apiKey"] = getSetting("apiKey");
+
+    root["timeServer1"] = getSetting("timeServer1", NTP_SERVER);
+    root["timeServer2"] = getSetting("timeServer2", "");
+    root["timeServer3"] = getSetting("timeServer3", "");
+    root["timeZone"] = getSetting("timeZone", String(NTP_TIME_ZONE));
+    root["timeSaving"] = getSetting("timeSaving", String(NTP_DAY_LIGHT)).toInt() == 1;
+    root["time"] = NTP.getTimeDateString();
 
     #if ENABLE_FAUXMO
         root["fauxmoVisible"] = 1;
