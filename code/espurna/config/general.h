@@ -44,7 +44,10 @@
 // All defined LEDs in the board can be managed through MQTT
 // except the first one when LED_AUTO is set to 1.
 // If LED_AUTO is set to 1 the board will use first defined LED to show wifi status.
+// If LED_RELAY is set to 1 you have to set LED_AUTO to 0 the first defined LED show the relay status,
+// you can inverse the LED (like a normal Light switch) by LED1_PIN_INVERSE in hardware.h.
 #define LED_AUTO                1
+#define LED_RELAY               0       // If set to 1 ---> set LED_AUTO to 0!
 
 // -----------------------------------------------------------------------------
 // WIFI & WEB
