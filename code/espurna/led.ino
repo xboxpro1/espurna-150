@@ -19,6 +19,7 @@ typedef struct {
 
 std::vector<led_t> _leds;
 bool ledAuto;
+bool ledRelay;
 
 bool ledStatus(unsigned char id) {
     if (id >= _leds.size()) return false;
