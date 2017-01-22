@@ -58,6 +58,12 @@ void showStatus() {
     }
 }
 
+void showRelayStatus(){
+  bool bitState = digitalRead(RELAY1_PIN);
+  ledStatus(0, bitState);
+}
+
+
 void ledMQTTCallback(unsigned int type, const char * topic, const char * payload) {
 
     static bool isFirstMessage = true;
@@ -86,6 +92,7 @@ void ledMQTTCallback(unsigned int type, const char * topic, const char * payload
 
         // get value
         unsigned int value =  (char)payload[0] - '0';
+        bool bitRelay = (value & 0x03) > 0;
         bool bitAuto = (value & 0x02) > 0;
         bool bitState = (value & 0x01) > 0;
 
@@ -94,6 +101,10 @@ void ledMQTTCallback(unsigned int type, const char * topic, const char * payload
             ledAuto = bitAuto ? bitState : false;
             setSetting("ledAuto", String() + (ledAuto ? "1" : "0"));
             if (bitAuto) return;
+            // Check ledRelay - payload 5
+            ledRelay = bitRelay ? bitState : false;
+            setSetting("ledRelay", String() + (ledRelay ? "1" : "0"));
+            if (bitRelay) return;
         }
 
         // Action to perform
@@ -109,6 +120,7 @@ unsigned char ledCount() {
 
 void ledConfigure() {
     ledAuto = getSetting("ledAuto", String() + LED_AUTO).toInt() == 1;
+    ledRelay = getSetting("ledRelay", String() + LED_RELAY).toInt() == 1;
 }
 
 void ledSetup() {
@@ -137,11 +149,13 @@ void ledSetup() {
 
     DEBUG_MSG("[LED] Number of leds: %d\n", _leds.size());
     DEBUG_MSG("[LED] Led auto indicator is %s\n", ledAuto ? "ON" : "OFF" );
+    DEBUG_MSG("[LED] Led relay indicator is %s\n", ledRelay ? "ON" : "OFF" );
 
 }
 
 void ledLoop() {
     if (ledAuto) showStatus();
+    if (ledRelay && !ledAuto) showRelayStatus();      //!ledAuto in case LED_AUTO 1 and LED_RELAY 1
 }
 
 #else
